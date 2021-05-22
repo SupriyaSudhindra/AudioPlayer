@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 120px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 0;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -60px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .canvas-styles {
+      border: 1px solid lightgray;
+      border-radius: 10px;
+      text-align: center;
+    }
+  </style>
+  <title>Page Title</title>
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <script>
+    var sourceUrl =
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3";
+    window.play = true;
+
+    var soundData = [];
+    var audioTime = 0;
+
+    function createAudio(sourceUrl) {
+      var audio = document.createElement("audio");
+      audio.id = "audio";
+      audio.preload = true;
+
+      audio.addEventListener("playing", () => {
+        var canvas = document.getElementById("audio_canvas");
+        var context = canvas.getContext("2d");
+        setInterval(() => {
+          digitalWaveForm(
+            canvas,
+            this.soundData[Math.floor(audio.currentTime)],
+            "pink"
+          );
+        }, audio.duration / 50);
+      });
+
+      audio.addEventListener("pause", () => {});
+
+      audio.addEventListener("loadedmetadata", () => {
+        var duration = Math.floor(audio.duration);
+        console.log(duration);
+        createCanvas(duration);
+      });
+
+      var source = document.createElement("source");
+      source.src = sourceUrl;
+      source.type = "audio/mpeg";
+
+      audio.appendChild(source);
+
+      document.body.appendChild(audio);
+    }
+
+    function playAudio() {
+      var element = document.getElementById("audio");
+      var playButton = document.getElementById("playButton");
+      if (!element) console.error("No Audio element");
+      window.play = !window.play;
+      if (playButton) {
+        if (!window.play) {
+          playButton.innerHTML = "pause";
+          element.play();
+        } else {
+          playButton.innerHTML = "play_arrow";
+          element.pause();
+        }
+      }
+    }
+
+    function createCanvas(duration) {
+      var canvas = document.createElement("canvas");
+      canvas.id = "audio_canvas";
+      canvas.classList.add("canvas-styles");
+      canvas.width = 1200;
+      canvas.height = 200;
+
+      var timeline = document.getElementById("timeline");
+      timeline.appendChild(canvas);
+
+      midLine(canvas, duration, "lightgrey");
+    }
+
+    function midLine(canvas, duration, strokeColor) {
+      if (canvas.getContext) {
+        var context = canvas.getContext("2d");
+        context.beginPath();
+        var yAxis = 100;
+        context.moveTo(0, yAxis);
+        context.lineTo(canvas.width, yAxis);
+        context.lineWidth = 1;
+        context.strokeStyle = strokeColor;
+        context.stroke();
+        context.closePath();
+        var count = 0;
+        var startX = 5;
+        var endX = 5;
+        var startY = 20;
+        var endY = 180;
+        while (count < duration) {
+          var sX = startX + count * 5;
+          var sY = startY + Math.floor(Math.random() * 80);
+          var eX = endX + count * 5;
+          var eY = endY - Math.floor(Math.random() * 80);
+
+          var obj = {
+            sX,
+            sY,
+            eX,
+            eY
+          };
+          this.soundData.push(obj);
+          digitalWaveForm(canvas, obj, strokeColor);
+          count++;
+        }
+      }
+    }
+
+    function digitalWaveForm(canvas, points, strokeColor = "lightgray") {
+      if (canvas.getContext) {
+        var context = canvas.getContext("2d");
+        context.beginPath();
+        context.moveTo(points.sX, points.sY);
+        context.lineTo(points.eX, points.eY);
+        context.lineWidth = 3;
+        context.strokeStyle = strokeColor;
+        context.lineCap = "round";
+        context.stroke();
+      }
+    }
+
+    window.onload = () => createAudio(sourceUrl);
+  </script>
+</head>
+
+<body class="row" style="margin-top: 100px">
+  <div style="margin-top: 50px; width: 70%; margin: 0 auto">
+    <div id="timeline" class="row" style="display: flex"></div>
+  </div>
+  <div style="width: 100%; text-align: center; margin-top: 50px">
+    <div class="row">
+      <button type="button" class="waves-effect waves-light btn-large white" style="border-radius: 50px; margin: 0 auto"
+        onclick="playAudio()">
+        <i class="material-icons" id="playButton" style="color: #38c9ec">play_arrow</i>
+      </button>
+    </div>
+  </div>
+</body>
+
+</html>
